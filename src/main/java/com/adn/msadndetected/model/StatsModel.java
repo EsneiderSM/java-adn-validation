@@ -5,7 +5,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class ResponseModel<T> {
-    private int code;
-    private T result;
+public class StatsModel {
+    private int verificados;
+    private int noVerificados;
 }

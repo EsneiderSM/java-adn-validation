@@ -1,31 +1,66 @@
 package com.adn.msadndetected.service;
 
+import com.adn.msadndetected.entity.StatsEntity;
 import com.adn.msadndetected.model.ResponseModel;
+import com.adn.msadndetected.model.StatsModel;
+import com.adn.msadndetected.repository.StatsRepository;
 import lombok.AllArgsConstructor;
 import com.adn.msadndetected.model.AdnModel;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Service
 @AllArgsConstructor
 public class AdnServiceImpl implements AdnService {
 
+    private final StatsRepository _statsRepository;
+
     @Override
     public ResponseModel validateSecuence(AdnModel model) {
-        ResponseModel response = new ResponseModel();
 
+        ResponseModel<String> response = new ResponseModel();
+        StatsEntity entity = new StatsEntity();
         String[][] matriz = fillMatrix(model);
         boolean result = validateMatrix(matriz);
 
         if(result){
             response.setCode(200);
-            response.setResul("Verificado");
+            response.setResult("Verificado");
         }else{
             response.setCode(403);
-            response.setResul("No Verificado");
+            response.setResult("No Verificado");
         }
 
-
+        entity.setSample(model.getMuestra());
+        entity.setResult(result);
+        _statsRepository.save(entity);
         return response;
+    }
+
+    @Override
+    public StatsModel getResults() {
+
+        int checked = 0;
+        int noChecked = 0;
+        StatsModel stateModelResult = new StatsModel();
+        List<StatsEntity> entities = _statsRepository.findAll();
+        
+        if(entities.size() > 0){
+
+            for(StatsEntity entity: entities){
+
+                if(entity.isResult()){
+                    checked++;
+                }else {
+                    noChecked++;
+                }
+            }
+        }
+        
+        stateModelResult.setVerificados(checked);
+        stateModelResult.setNoVerificados(noChecked);
+        return stateModelResult;
     }
 
     private String[][] fillMatrix(AdnModel model){
